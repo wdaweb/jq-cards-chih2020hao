@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+<style>
+  #options {
+    width: 500px;
+    margin: auto;
+  }
+
+  .option {
+    margin-right: 30px;
+  }
+
+  #game {
+    width: 900px;
+    margin: auto;
+  }
+
+  .card {
+    width: 100px;
+    height: 180px;
+    transform-style: preserve-3d;
+    position: relative;
+    transition: all 0.5s;
+    float: left;
+    margin-left: 5px;
+  }
+
+  .front {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+  }
+
+  .back {
+    width: 100%;
+    height: 100%;
+    background: url(cards/purple_back.jpg) no-repeat center center/contain;
+    position: absolute;
+    transform: rotateY(180deg);
+  }
+
+  .close {
+    transform: rotateY(180deg);
+  }
+
+  p {
+    display: inline;
+  }
+
+  #time {
+    width: 450px;
+    margin: auto;
+  }
+</style>
+
+<body>
+  <div id="options">
+    <label for="mode">模式:</label>
+    <select name="mode" id="mode" class="option">
+      <option value="0">計時</option>
+      <option value="1">限時</option>
+    </select>
+    <label for="difficulty">難易度:</label>
+    <select name="difficulty" id="difficulty" class="option">
+      <option value="0">Easy</option>
+      <option value="1">Normal</option>
+      <option value="2">Hard</option>
+    </select>
+    <input id="start" type="button" value="START" class="option">
+  </div>
+  <div id="time">
+    <p id="viewTime" class="time">記牌時間: <span></span></p>
+    <p id="totalTime" class="time">花費時間: <span></span></p>
+    <p id="timeLeft" class="time">剩餘時間: <span></span></p>
+  </div>
+  <div id="game"></div>
+  </div>
+  <script src="jquery-3.5.1.min.js"></script>
+  <script>
+    let totalCards = 8;
+    let mod = 0
+    let secore = 0
+    const allCards = ["1S", "2S", "3S", "4S", "5S", "6S", "7S", "8S", "9S", "10S", "JS", "QS", "KS", "1H", "2H", "3H", "4H", "5H", "6H", "7H", "8H", "9H", "10H", "JH", "QH", "KH", "1D", "2D", "3D", "4D", "5D", "6D", "7D", "8D", "9D", "10D", "JD", "QD", "KD", "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C", "JC", "QC", "KC"]
+    const cards = []
+
+    $('.time').hide()
+    printCard()
+
+    function printCard() {
+      for (let i = 0; i < totalCards / 2; i++) {
+        let card = Math.floor(Math.random() * allCards.length)
+        if (cards.includes(`${allCards[card]}`)) {
+          i--
+        } else {
+          cards.push(`${allCards[card]}`)
+        }
+      }
+      for (let i = 0; i < totalCards; i++) {
+        $("#game").append(`
+            <div class="card close">
+              <div class="back"></div>
+              <div class="front"></div>
+          </div>`);
+
+        const number = i % (totalCards / 2) + 1;
+        $('.card').eq(i).find('.front').css('background-image', `url(cards/${cards[number - 1]}.jpg)`)
+        $('.card').eq(i).attr('data-card', number)
+
+        const target = Math.floor(Math.random() * 16)
+        $('.card').eq(target).insertAfter($('.card').eq(i))
+      }
+    }
+
+    $('#difficulty').change(function () {
+      $('.card').remove()
+      cards.splice(0, totalCards)
+      let dif = parseInt(this.value)
+      totalCards = Math.pow(2, dif) * 8
+      printCard()
+    })
+
+    $('#mode').change(function () {
+      mod = this.value
+    })
+
+    $('#start').click(function () {
+      $('#options').hide()
+      if (mod == 1) {
+        let timeLeft = totalCards / 8 * 20
+        $('#timeLeft').show()
+        $('#timeLeft span').html(`${timeLeft}`)
+        let TL = setInterval(function () {
+          timeLeft--
+          $('#timeLeft span').html(`${timeLeft}`)
+        }, 1000);
+        setTimeout(function () {
+          clearInterval(TL)
+          alert(`時間到，你的分數是:${secore}`)
+          $('#timeLeft').hide()
+          $('#options').show()
+          $('.card').remove()
+          cards.splice(0, totalCards)
+          printCard()
+          secore = 0
+        }, totalCards / 8 * 20000);
+        $('#game').on('click', '.card', function () {
+          if ($('.card:not(.close)').length < 2) {
+            $(this).removeClass('close')
+          }
+          if ($('.card:not(.close)').length == 2) {
+            if ($('.card:not(.close)').eq(0).attr('data-card') == $('.card:not(.close)').eq(1).attr('data-card')) {
+              $('.card:not(.close)').fadeTo(800, 0).addClass('clear close')
+              secore += totalCards / 8
+              console.log(secore)
+            }
+            setTimeout(() => {
+              $('.card:not(.close)').addClass('close')
+            }, 1000)
+          }
+        })
+      }
+    })
+  </script>
+</body>
+
+</html>
