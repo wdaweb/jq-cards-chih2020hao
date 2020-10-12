@@ -89,6 +89,7 @@
     let totalCards = 8;
     let mod = 0
     let secore = 0
+    let totalTime = 0
     const allCards = ["1S", "2S", "3S", "4S", "5S", "6S", "7S", "8S", "9S", "10S", "JS", "QS", "KS", "1H", "2H", "3H", "4H", "5H", "6H", "7H", "8H", "9H", "10H", "JH", "QH", "KH", "1D", "2D", "3D", "4D", "5D", "6D", "7D", "8D", "9D", "10D", "JD", "QD", "KD", "1C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C", "JC", "QC", "KC"]
     const cards = []
 
@@ -137,10 +138,10 @@
       if (mod == 1) {
         let timeLeft = totalCards / 8 * 20
         $('#timeLeft').show()
-        $('#timeLeft span').html(`${timeLeft}`)
+        $('#timeLeft span').html(`${timeLeft}秒`)
         let TL = setInterval(function () {
           timeLeft--
-          $('#timeLeft span').html(`${timeLeft}`)
+          $('#timeLeft span').html(`${timeLeft}秒`)
         }, 1000);
         setTimeout(function () {
           clearInterval(TL)
@@ -167,6 +168,52 @@
             }, 1000)
           }
         })
+      } else {
+        $('.card').removeClass('close')
+        let viewTime = totalCards / 8 * 5
+        $('#viewTime').show()
+        $('#viewTime span').html(`${viewTime}秒`)
+        let VT = setInterval(function () {
+          viewTime--
+          $('#viewTime span').html(`${viewTime}秒`)
+        }, 1000);
+        setTimeout(() => {
+          clearInterval(VT)
+          $('.card').addClass('close')
+          $('#viewTime').hide()
+          $('#totalTime').show()
+          $('#totalTime span').html(`${totalTime}秒`)
+          let TT = setInterval(() => {
+            totalTime++
+            $('#totalTime span').html(`${totalTime}秒`)
+          }, 1000);
+          $('#game').on('click', '.card', function () {
+            if ($('.card:not(.close)').length < 2) {
+              $(this).removeClass('close')
+            }
+            if ($('.card:not(.close)').length == 2) {
+              if ($('.card:not(.close)').eq(0).attr('data-card') == $('.card:not(.close)').eq(1).attr('data-card')) {
+                $('.card:not(.close)').fadeTo(800, 0).addClass('clear')
+              }
+              setTimeout(() => {
+                $('.card:not(.close)').addClass('close')
+              }, 1000)
+            }
+            if ($('.clear').length == totalCards) {
+              setTimeout(() => {
+                clearInterval(TT)
+                alert(`過關，你總共花了${totalTime}秒`)
+                $('#totalTime').hide()
+                $('#options').show()
+                $('.card').remove()
+                totalTime = 0
+                cards.splice(0, totalCards)
+                printCard()
+                secore = 0
+              }, 800)
+            }
+          })
+        }, totalCards / 8 * 5000 + 500);
       }
     })
   </script>
