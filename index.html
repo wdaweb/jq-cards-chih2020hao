@@ -59,6 +59,7 @@
   #time {
     width: 450px;
     margin: auto;
+    font-size: 24px;
   }
 </style>
 
@@ -81,6 +82,7 @@
     <p id="viewTime" class="time">記牌時間: <span></span></p>
     <p id="totalTime" class="time">花費時間: <span></span></p>
     <p id="timeLeft" class="time">剩餘時間: <span></span></p>
+    <p id="timeOut" class="time">過關，你總共花了: <span></span></p>
   </div>
   <div id="game"></div>
   </div>
@@ -136,86 +138,95 @@
     $('#start').click(function () {
       $('#options').hide()
       if (mod == 1) {
-        let timeLeft = totalCards / 8 * 20
-        $('#timeLeft').show()
+        gameTimeOut()
+      } else {
+        totalTime = 0
+        gameTimeLeft()
+      }
+    })
+    function gameTimeOut() {
+      let timeLeft = totalCards / 8 * 20
+      $('#timeLeft').show()
+      $('#timeLeft span').html(`${timeLeft}秒`)
+      let TL = setInterval(function () {
+        timeLeft--
         $('#timeLeft span').html(`${timeLeft}秒`)
-        let TL = setInterval(function () {
-          timeLeft--
-          $('#timeLeft span').html(`${timeLeft}秒`)
+      }, 1000);
+      setTimeout(function () {
+        clearInterval(TL)
+        alert(`時間到，你的分數是:${secore}`)
+        $('#timeLeft').hide()
+        $('#options').show()
+        $('.card').remove()
+        cards.splice(0, totalCards)
+        printCard()
+        secore = 0
+      }, totalCards / 8 * 20000);
+      $('#game').on('click', '.card', function () {
+        if ($('.card:not(.close)').length < 2) {
+          $(this).removeClass('close')
+        }
+        if ($('.card:not(.close)').length == 2) {
+          if ($('.card:not(.close)').eq(0).attr('data-card') == $('.card:not(.close)').eq(1).attr('data-card')) {
+            $('.card:not(.close)').fadeTo(800, 0).addClass('clear')
+            secore += totalCards / 8
+            console.log(secore)
+          }
+          setTimeout(() => {
+            $('.card:not(.close)').addClass('close')
+          }, 1000)
+        }
+      })
+    }
+    function gameTimeLeft() {
+      $('.card').removeClass('close')
+      let viewtime = totalCards / 8 * 5
+      $('#viewTime').show()
+      $('#viewTime span').html(`${viewtime}秒`)
+      let VT = setInterval(function () {
+        viewtime--
+        $('#viewTime span').html(`${viewtime}秒`)
+      }, 1000)
+      setTimeout(function () {
+        $('.card').addClass('close')
+        clearInterval(VT)
+        $('#viewTime').hide()
+        $('#totalTime').show()
+        $('#totalTime span').html(`${totalTime}秒`)
+        let TT = setInterval(() => {
+          totalTime++
+          $('#totalTime span').html(`${totalTime}秒`)
         }, 1000);
-        setTimeout(function () {
-          clearInterval(TL)
-          alert(`時間到，你的分數是:${secore}`)
-          $('#timeLeft').hide()
-          $('#options').show()
-          $('.card').remove()
-          cards.splice(0, totalCards)
-          printCard()
-          secore = 0
-        }, totalCards / 8 * 20000);
         $('#game').on('click', '.card', function () {
           if ($('.card:not(.close)').length < 2) {
             $(this).removeClass('close')
           }
           if ($('.card:not(.close)').length == 2) {
             if ($('.card:not(.close)').eq(0).attr('data-card') == $('.card:not(.close)').eq(1).attr('data-card')) {
-              $('.card:not(.close)').fadeTo(800, 0).addClass('clear close')
-              secore += totalCards / 8
-              console.log(secore)
+              $('.card:not(.close)').fadeTo(800, 0).addClass('clear')
             }
             setTimeout(() => {
               $('.card:not(.close)').addClass('close')
-            }, 1000)
+            }, 800)
+          }
+          if ($('.clear').length == totalCards) {
+            setTimeout(() => {
+              $('#totalTime').hide()
+              $('#timeOut').show()
+              $('#timeOut span').html(`${totalTime}秒`)
+            }, 500);
+            setTimeout(() => {
+              clearInterval(TT)
+              $('#timeOut').hide()
+              $('#options').show()
+              $('.card').remove()
+              cards.splice(0, totalCards)
+              printCard()
+            }, 2500)
           }
         })
-      } else {
-        $('.card').removeClass('close')
-        let viewTime = totalCards / 8 * 5
-        $('#viewTime').show()
-        $('#viewTime span').html(`${viewTime}秒`)
-        let VT = setInterval(function () {
-          viewTime--
-          $('#viewTime span').html(`${viewTime}秒`)
-        }, 1000);
-        setTimeout(() => {
-          clearInterval(VT)
-          $('.card').addClass('close')
-          $('#viewTime').hide()
-          $('#totalTime').show()
-          $('#totalTime span').html(`${totalTime}秒`)
-          let TT = setInterval(() => {
-            totalTime++
-            $('#totalTime span').html(`${totalTime}秒`)
-          }, 1000);
-          $('#game').on('click', '.card', function () {
-            if ($('.card:not(.close)').length < 2) {
-              $(this).removeClass('close')
-            }
-            if ($('.card:not(.close)').length == 2) {
-              if ($('.card:not(.close)').eq(0).attr('data-card') == $('.card:not(.close)').eq(1).attr('data-card')) {
-                $('.card:not(.close)').fadeTo(800, 0).addClass('clear')
-              }
-              setTimeout(() => {
-                $('.card:not(.close)').addClass('close')
-              }, 1000)
-            }
-            if ($('.clear').length == totalCards) {
-              setTimeout(() => {
-                clearInterval(TT)
-                alert(`過關，你總共花了${totalTime}秒`)
-                $('#totalTime').hide()
-                $('#options').show()
-                $('.card').remove()
-                totalTime = 0
-                cards.splice(0, totalCards)
-                printCard()
-                secore = 0
-              }, 800)
-            }
-          })
-        }, totalCards / 8 * 5000 + 500);
-      }
-    })
+      }, totalCards / 8 * 5000 + 500)
+    }
   </script>
 </body>
 
